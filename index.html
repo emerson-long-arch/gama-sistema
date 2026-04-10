@@ -259,9 +259,10 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--dk);min-hei
       <div class="drop" id="drop" ondragover="dOv(event)" ondragleave="dLv(event)" ondrop="dDp(event)">
         <input type="file" id="file-in" accept="image/*,application/pdf" multiple onchange="fileOk(event)">
         <div class="drop-ic">📄</div>
-        <div class="drop-t">Toque para tirar foto ou escolher arquivo</div>
-        <div class="drop-s">JPG · PNG · PDF</div>
+        <div class="drop-t">Toque para escolher 1 ou mais arquivos</div>
+        <div class="drop-s">JPG · PNG · PDF · Selecione várias páginas de uma vez</div>
       </div>
+      <div id="files-list" style="margin-top:8px;display:flex;flex-direction:column;gap:4px"></div>
       <img id="img-prev" class="img-prev" alt="">
       <div class="btn-row">
         <button class="btn btn-or btn-full" id="btn-scan" onclick="transcrever()" disabled>✨ Ler com IA</button>
@@ -566,8 +567,7 @@ function processFiles(files) {
   if(!files.length) return;
   filesQueue = [];
   const listEl = document.getElementById('files-list');
-  listEl.innerHTML = '';
-  listEl.style.display = 'flex';
+  if(listEl) listEl.innerHTML = '';
   
   let loaded = 0;
   files.forEach((file, idx) => {
@@ -578,13 +578,13 @@ function processFiles(files) {
       // Mostra preview da primeira imagem
       if(idx === 0 && file.type.startsWith('image/')){
         const img=document.getElementById('img-prev');
-        img.src=e.target.result; img.style.display='block';
+        if(img){img.src=e.target.result; img.style.display='block';}
       }
       // Adiciona chip na lista
       const chip = document.createElement('div');
       chip.style.cssText='display:flex;align-items:center;gap:6px;padding:6px 10px;background:#f0f0f0;border-radius:6px;font-size:12px;';
       chip.innerHTML=`<span>📄</span><span style="flex:1">${file.name}</span><span style="color:var(--gn);font-weight:600">✓</span>`;
-      listEl.appendChild(chip);
+      if(listEl) listEl.appendChild(chip);
       
       if(loaded === files.length){
         document.getElementById('btn-scan').disabled = false;
