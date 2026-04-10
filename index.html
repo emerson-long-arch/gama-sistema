@@ -529,8 +529,8 @@ window.onload = () => {
   },100);
   document.getElementById('hdr-date').textContent = hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).toUpperCase();
   document.getElementById('agenda-data').textContent = hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
-  document.getElementById('hdr-logo').src = 'data:image/png;base64,' + LOGO_B64;
-  document.getElementById('a4-logo').src = 'data:image/png;base64,' + LOGO_B64;
+  const _hl=document.getElementById('hdr-logo');
+  if(_hl) _hl.src = 'data:image/png;base64,' + LOGO_B64;
   addItem(); renderItens();
   renderTasks();
   renderMaquinas();
@@ -599,7 +599,7 @@ function processFile(file) { processFiles([file]); }
 
 // ── TRANSCREVER ──
 async function transcrever() {
-  if(!filesQueue.length) return;
+  if(!filesQueue || !filesQueue.length){ toast('Selecione um arquivo primeiro','err'); return; }
   showLdr('Lendo documento...', filesQueue.length > 1 ? `Processando ${filesQueue.length} páginas...` : 'IA extraindo os dados');
   
   const prompt = `Analise este documento da Gama Industrial (pode ter múltiplas páginas) e extraia TODOS os dados consolidados.
@@ -609,8 +609,9 @@ Formato exato:
 
   try {
     // Monta o conteúdo com todas as imagens
-    const content = filesQueue.map(f => ({
-      type:'image', source:{type:'base64', media_type:f.mime, data:f.b64}
+    if(!filesQueue || !filesQueue.length){ hideLdr(); toast('Selecione um arquivo primeiro','err'); return; }
+    const content = filesQueue.filter(f=>f).map(f => ({
+      type:'image', source:{type:'base64', media_type:f.mime||'image/jpeg', data:f.b64}
     }));
     content.push({type:'text', text:prompt});
 
