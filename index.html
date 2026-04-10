@@ -524,8 +524,8 @@ window.onload = () => {
   var _fd=document.getElementById('ftr-date'); if(_fd) _fd.textContent='Manaus – AM, '+hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})+'.';
   document.getElementById('hdr-date').textContent = hoje.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).toUpperCase();
   document.getElementById('agenda-data').textContent = hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
-  document.getElementById('hdr-logo').src = 'data:image/png;base64,' + LOGO_B64;
-  document.getElementById('a4-logo').src = 'data:image/png;base64,' + LOGO_B64;
+  var hl=document.getElementById('hdr-logo'); if(hl) hl.src='data:image/png;base64,'+LOGO_B64;
+  var al=document.getElementById('a4-logo'); if(al) al.src='data:image/png;base64,'+LOGO_B64;
   addItem(); renderItens();
   renderTasks();
   renderMaquinas();
@@ -573,7 +573,7 @@ async function transcrever() {
   var valid = filesQueue.filter(function(f){return f&&f.b64;});
   if(!valid.length){toast('Selecione um arquivo primeiro','err');return;}
   showLdr('Lendo documento...', valid.length>1?'Processando '+valid.length+' páginas...':'IA extraindo dados');
-  var prompt = 'Analise este documento da Gama Industrial e extraia TODOS os dados consolidados de todas as páginas.\nRetorne APENAS JSON válido sem markdown.\nFormato: {"tipo":"contrato","numero":"","data":"YYYY-MM-DD","comprador":{"nome":"","cnpj":"","endereco":"","cep":"","representante":"","cpf":""},"objeto":"","descricao":"","itens":[{"desc":"","qty":1,"price":0}],"prazo":"","pagamento":"","garantia":"","obs":""}';
+  var prompt = 'Você é um assistente especializado em extrair dados de documentos da Gama Industrial LTDA.\n\nAnalise TODAS as imagens/páginas enviadas e extraia os dados consolidados.\n\nRegras:\n- tipo: identifique se é contrato, proposta, os, recibo ou orcamento\n- numero: número do documento se houver\n- data: data no formato YYYY-MM-DD\n- comprador.nome: razão social do cliente/comprador\n- comprador.cnpj: CNPJ do comprador\n- comprador.endereco: endereço completo do comprador\n- comprador.cep: CEP do comprador\n- comprador.representante: nome do responsável/representante do comprador\n- comprador.cpf: CPF do representante\n- objeto: o que está sendo vendido/contratado (resumido)\n- descricao: descrição técnica COMPLETA dos equipamentos com todas as especificações\n- itens: lista de produtos com descrição, quantidade e preço unitário\n- prazo: prazo de entrega/execução\n- pagamento: condições de pagamento detalhadas\n- garantia: prazo e condições de garantia\n- obs: observações, cláusulas especiais\n\nRetorne APENAS JSON válido sem markdown nem texto extra.\nFormato: {"tipo":"proposta","numero":"","data":"YYYY-MM-DD","comprador":{"nome":"","cnpj":"","endereco":"","cep":"","representante":"","cpf":""},"objeto":"","descricao":"","itens":[{"desc":"","qty":1,"price":0}],"prazo":"","pagamento":"","garantia":"","obs":""}';
   try {
     var content = valid.map(function(f){return {type:'image',source:{type:'base64',media_type:f.mime,data:f.b64}};});
     content.push({type:'text',text:prompt});
@@ -584,7 +584,7 @@ async function transcrever() {
     fillDoc(JSON.parse(txt)); renderDoc();
     hideLdr(); toast('✅ Transcrito!','ok');
     docTab(2, document.querySelectorAll('.tab')[2]);
-  } catch(e){hideLdr();toast('Erro: '+e.message,'err');console.error(e);}
+  } catch(e){hideLdr();var msg=e.message&&e.message.includes('verload')?'API sobrecarregada, tente novamente em segundos':'Erro: '+e.message;toast(msg,'err');console.error(e);}
 }
 
 function fillDoc(d) {
